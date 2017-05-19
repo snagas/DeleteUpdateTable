@@ -1,0 +1,310 @@
+<style>
+    .add {
+        float: right;
+    }
+
+    .joblist {
+        float: right;
+
+    }
+
+    .inputas {
+        float: left;
+        width: 50px;
+    }
+
+    .checkbox {
+        margin: 15px;
+    }
+
+    .delete {
+        float: left;
+    }
+
+
+</style>
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Dev minion
+ * Date: 5/9/2017
+ * Time: 7:10 PM
+ */
+// Creating the widget
+
+class vaidas_todo_widget extends WP_Widget
+{
+
+    function __construct()
+    {
+        parent::__construct(
+            'vaidas_todo',
+            __('To-do-listas', 'wpb_widget_domain'), //widget title ir text_domain
+            array('description' => __('Mano darbu listai', 'wpb_widget_domain'),)
+        );
+    }
+
+    /**
+     * Front-end display of widget.
+     *
+     * @see WP_Widget::widget()
+     *
+     * @param array $args Widget arguments.
+     * @param array $instance Saved values from database.
+     */
+
+
+    public function widget($args, $instance) //arguments and values from database //ka idesime cia bus atvaizduo ta
+    {
+        /* // rodo pavadinima pradzioje
+        echo $args['before_widget']; //args pries widgetas
+        if ( ! empty( $instance['title'] ) ) { //jei egzistuoja pavadinimas, rodyti ji
+            echo $args['before_title'] . apply_filters('To-do-listas', $instance['title']). $args['after_title']; //apply_filters('To-do-listas', $instance['title']). -rodomas to-do-listas ir mano naujas ivestas pavadinimas laukelyje
+        }
+        */
+        $title = apply_filters('To-do-listas', $instance['title']);
+
+
+        //echo esc_html__( 'Hello, World!', 'wpb_widget_domain' );
+        echo $args['after_widget']; //args po widgetas
+        // if (!empty($title))
+
+        global $wpdb;
+        global $plugintitle;
+        $results = $wpdb->get_results('SELECT * FROM `mytable`', ARRAY_A); //=============================================>
+        ?>
+        <div class="mainWidget">
+            <div id="widget">
+                <h1><?php echo $instance['title'] ?></h1>
+                <form method="post" id="todoInsert" action="http://localhost/wordpress/">
+                    <label>Add new item <input type="text" name="inputwindow"></label>
+                    <input name="submit" class="add" type="submit" value="Add"/><br>
+                    <?php
+
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = '';
+                    $dbname = "wordpress";
+
+                    // Create connection
+                    $conn = mysqli_connect('localhost', 'root', '', 'wordpress');
+                    // Check connection
+                    if ($conn->connect_error) {
+                        die("Connection failed: " . $conn->connect_error);
+                    }
+
+                    if (isset($_POST['submit'])) {
+                        $name = $_POST['inputwindow'];
+
+
+                        //$sql=$wpdb->insert( mytable, $name, null );
+                        //$sql="insert into mytable(id, Name, Done) values ('5','$name', NULL)";
+                        $sql = "INSERT INTO mytable (Name) VALUES ('$name')";
+                        // $sql="INSERT INTO `mytable` (`Id`, `Name`, `Done`) VALUES (NULL, 'Jonas', NULL);";
+
+                        $query = mysqli_query($conn, $sql);
+
+                        header('Location: http://localhost/wordpress/');
+                        if ($query)
+                            echo "'data inserted SUCCESSFULLY' ";
+
+
+                    }
+                    //header("location: wp-styles.php");
+                    //exit;
+                    ?>
+            </div>
+            <?php
+            foreach ($results as $item):
+                ?>
+                <div>
+                    <input class="checkbox" type="checkbox"
+                           name="done" <?php if ($item['Done'] == 1) echo 'checked'; ?>/>
+                    <label class="joblist">
+                        <?php
+                        echo $item['Name'];
+                        ?>
+                    </label>
+                </div>
+
+            <?php endforeach; ?>
+
+
+            </form>
+        </div>
+        </div>
+        <?php
+        //echo __('Hello, World!', 'wpb_widget_domain');
+    }
+
+// Widget Backend
+    public
+    function form($instance)
+    {
+        if (isset($instance['title'])) {
+            $title = $instance['title'];
+        } else {
+            $plugintitle = $title = __('New title', 'wpb_widget_domain');
+        }
+
+        // cia uzrasome tai ka matome viduje widget                                                                                    ============================>
+        // Widget admin form
+        ?>
+        <p>
+            <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>"
+                   name="<?php echo $this->get_field_name('title'); ?>" type="text"
+                   value="<?php echo esc_attr($title); ?>"/>
+        </p>
+        <?php
+    }
+//auksciau esanti funkcija neveiks be update metodo. Atsiranda laukeliai galima ivesti bet neveikia
+// Updating widget replacing old instances with new
+    public
+    function update($new_instance, $old_instance)           //bus priimti visi value po ivedimo ir paspaudimo save. $old_instance = praejusiu pavadinimu reiksmes
+    {
+        $instance = array();                                // sukuriame nauja variable $instance ir surasome i arrayju viska kas egzistuoja
+        //jeigu nauja $instance(duomenu baze) 'title' nera tuscia tai
+        $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : ''; //?-then, :-other wise , reiksme-> : '' -> other wise we set it to nothing. striptags = sujungia tagus. kitaip sakant apsaugo no galimybes ivesti html koda ar kazka tokio
+        return $instance;                                   // pries tai esancioje eiluteje surasome visas reiksmes ir padarome jas saugias bei sitoje eiluteje graziname atgal i $instance = array(); ir tada sugrazinam $new_instance
+    }
+
+
+} // Class wpb_widget ends here
+
+// Register and load the widget
+function vaidas_todo_load_widget()
+{
+    register_widget('vaidas_todo_widget');
+}
+
+
+add_action('widgets_init', 'vaidas_todo_load_widget');
+
+/** Step 2 (from text above). */
+add_action('admin_menu', 'my_plugin_menu');
+
+/** Step 1. */
+function my_plugin_menu()
+{
+
+    add_options_page('My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options');
+}
+
+
+/** Step 3. */
+function my_plugin_options()
+{
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have sufficient permissions to access this page.'));
+    }
+
+
+    $servername = "localhost";
+    $username = "root";
+    $password = '';
+    $dbname = "wordpress";
+
+    // Create connection
+    $conn = mysqli_connect('localhost', 'root', '');
+    $db = mysqli_select_db($conn, 'wordpress');
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    if (isset($_POST)) {
+        echo '<pre>';
+        print_r($_POST);
+        echo '<pre>';
+        echo get_option('widget_vaidas_todo')[2]['title'];
+    }
+
+
+    echo '<form method="POST" action="">';
+
+    echo '<p>Here is where the form would go if I actually had options.</p>';
+    echo '<h1><a>to-do admin panel</a></h1>';
+
+//PANEL TITLE
+    if (isset($_POST['todopaneltitle'])) {
+
+        global $plugintitle;
+        $plugintitle = $_POST['todopaneltitle']; //============================================================================>
+
+        echo $_POST['todopaneltitle'];
+    }
+
+
+    echo '<input class="input" type="text" name="todopaneltitle"  value="' . get_option('widget_vaidas_todo')[2]['title'] . '"/><br>';
+    echo '<input class="save" type="submit" value="Save"><br/>';
+// end of TITLE
+    echo '</form>';
+
+
+    //global $wpdb;
+    $sql = "SELECT * FROM mytable";
+
+
+    $results = mysqli_query($conn, $sql) or die(mysqli_error($conn));
+    if (mysqli_num_rows($results) > 0) {
+        // echo '<p>', $count, '</p>' ;
+        if (isset($_POST['Delete'])) {
+            // print_r($_POST['Delete']);
+            if (isset($_POST['Done'])) {
+                //print_r($_POST['Done']);
+                $elements = $_POST['Done'];
+
+
+                $list = implode(',', $elements);
+                print_r($list);
+
+                $delete = "DELETE FROM mytable WHERE id IN($list)";
+
+                mysqli_query($conn, $delete) or die(mysqli_error($conn));
+                header('Location: http://localhost/wordpress/wp-admin/options-general.php?page=my-unique-identifier');
+            }
+        }
+
+
+        echo '<form method="POST" action="http://localhost/wordpress/wp-admin/options-general.php?page=my-unique-identifier">';
+        while ($row = mysqli_fetch_assoc($results)) {
+            print_r($row);
+
+            echo '<body style="float:left;">';
+            echo '<div style="float:left;">';
+
+
+            //DELETE MYGTUKAS
+            echo '<input type="submit" name="Delete" value="Delete">';
+
+
+            //echo 'ID:  ' . $row['Id'] . '<br/>';
+            if ($row['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+            echo '<input type="checkbox" name="Done[]" ' . $checkedtekstas . ' value="' . $row['Id'] . '">' . "\n";
+
+            echo '<input type="hidden" name="id" value="' . $row['Id'] . '">' . "\n";
+
+            // echo $row->Id, ' ',  $row->Name, $row->Done, '<br>';
+
+            echo $row['Name'];
+            echo '</div>';
+            echo '</body>';
+
+
+        }
+    }
+    //$results->free();
+
+
+    echo '</form>';
+
+
+}
+
+
+?>
+
+
+
+

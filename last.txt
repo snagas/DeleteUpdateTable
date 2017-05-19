@@ -1,0 +1,743 @@
+<style>
+    .add {
+        float: right;
+    }
+
+    .joblist {
+        float: right;
+
+    }
+
+    .inputas {
+        float: left;
+        width: 50px;
+    }
+
+    .checkbox {
+        margin: 15px;
+    }
+
+    .delete {
+        float: left;
+    }
+
+
+</style>
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Dev minion
+ * Date: 5/9/2017
+ * Time: 7:10 PM
+ */
+// Creating the widget
+
+//-----------------------------------------------------
+
+
+/*
+$sql = "INSERT INTO MyGuests (firstname, lastname, email)
+VALUES ('John', 'Doe', 'john@example.com')";
+
+if ($conn->query($sql) === TRUE) {
+    echo "New record created successfully";
+} else {
+    echo "Error: " . $sql . "<br>" . $conn->error;
+}
+
+$conn->close();
+*/
+
+//-----------------------------------------------------------
+
+class vaidas_todo_widget extends WP_Widget
+{
+
+    function __construct()
+    {
+        parent::__construct(
+            'vaidas_todo',
+            __('To-do-listas', 'wpb_widget_domain'),
+            array('description' => __('Mano darbu listai', 'wpb_widget_domain'),)
+        );
+    }
+
+
+    public function widget($args, $instance)
+    {
+        $title = apply_filters('widget_title', $instance['title']);
+
+        // if (!empty($title))
+///
+        global $wpdb;
+        $results = $wpdb->get_results('SELECT * FROM `mytable`', ARRAY_A);
+
+
+        ?>
+
+
+        <div class="mainWidget">
+            <div id="widget">
+                <h1><?php echo $title ?></h1>
+                <form method="post" id="todoInsert" action="http://localhost/wordpress/">
+                    <label>Add new item <input type="text" name="inputwindow"></label>
+                    <input name="submit" class="add" type="submit" value="Add"/><br>
+                    <?php
+
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = '';
+                    $dbname = "wordpress";
+
+                    // Create connection
+                    $conn = mysqli_connect('localhost', 'root', '', 'wordpress');
+                    // Check connection
+                    if ($conn->connect_error) {
+                        die("Connection failed: " . $conn->connect_error);
+                    }
+
+                    if (isset($_POST['submit'])) {
+                        $name = $_POST['inputwindow'];
+
+
+                        //$sql=$wpdb->insert( mytable, $name, null );
+                        //$sql="insert into mytable(id, Name, Done) values ('5','$name', NULL)";
+                        $sql = "INSERT INTO mytable (Name) VALUES ('$name')";
+                        // $sql="INSERT INTO `mytable` (`Id`, `Name`, `Done`) VALUES (NULL, 'Jonas', NULL);";
+
+                        $query = mysqli_query($conn, $sql);
+                        if ($query)
+                            echo "'data inserted SUCCESSFULLY' ";
+
+
+                    } else {
+                        echo "ErrorRRRRRRRRRRRRRRRRRRRRRRRR:  ";
+                    }
+
+                    $conn->close();
+
+                    ?>
+            </div>
+
+
+            <?php
+
+            foreach ($results as $item):
+
+                ?>
+                <div>
+                    <input class="checkbox" type="checkbox"
+                           name="done" <?php if ($item['Done'] == 1) echo 'checked'; ?>/>
+                    <label class="joblist">
+                        <?php
+                        echo $item['Name'];
+                        ?>
+                    </label>
+                </div>
+
+            <?php endforeach; ?>
+
+
+            </form>
+        </div>
+        </div>
+
+
+        <?php
+
+
+        //echo __('Hello, World!', 'wpb_widget_domain');
+    }
+
+// Widget Backend
+    public
+    function form($instance)
+    {
+        if (isset($instance['title'])) {
+            $title = $instance['title'];
+        } else {
+            $title = __('New title', 'wpb_widget_domain');
+        }
+// Widget admin form
+        ?>
+        <p>
+            <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>"
+                   name="<?php echo $this->get_field_name('title'); ?>" type="text"
+                   value="<?php echo esc_attr($title); ?>"/>
+        </p>
+        <?php
+    }
+
+// Updating widget replacing old instances with new
+    public
+    function update($new_instance, $old_instance)
+    {
+        $instance = array();
+        $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+        return $instance;
+    }
+} // Class wpb_widget ends here
+
+// Register and load the widget
+function vaidas_todo_load_widget()
+{
+    register_widget('vaidas_todo_widget');
+}
+
+add_action('widgets_init', 'vaidas_todo_load_widget');
+
+/** Step 2 (from text above). */
+add_action('admin_menu', 'my_plugin_menu');
+
+/** Step 1. */
+function my_plugin_menu()
+{
+    add_options_page('My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options');
+}
+
+
+/** Step 3. */
+function my_plugin_options()
+{
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have sufficient permissions to access this page.'));
+    }
+
+
+    $servername = "localhost";
+    $username = "root";
+    $password = '';
+    $dbname = "wordpress";
+
+    // Create connection
+    $conn = mysqli_connect('localhost', 'root', '', 'wordpress');
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+    echo '<form method="POST" action="">';
+
+    echo '<p>Here is where the form would go if I actually had options.</p>';
+    echo '<h1><a>to-do admin panel</a></h1>';
+
+//PANEL TITLE
+    if (isset($_POST['todopaneltitle'])) {
+        $title = $_POST['todopaneltitle'];
+        echo $_POST['todopaneltitle'];
+    }
+
+
+    echo '<input class="input" type="text" name="todopaneltitle"  value="To-do panel title"/><br>';
+    echo '<input class="save" type="submit" value="Save"><br/>';
+// end of TITLE
+
+
+    global $wpdb;
+    $select = 'SELECT * FROM `mytable`';
+
+    //error_reporting(0);
+   // require 'C:/wamp64/www/wordpress/wp-content/plugins/Mano darbai/widget.php';
+    if ($results = mysqli_query($conn, $select) or die(mysqli_error($conn))) {
+        if ($count=$results-> num_rows) {
+            echo '<p>', $count, '</p>' ;
+
+            echo '<div style="float:left;">';
+
+            while($row=$results->fetch_object()) {
+               // echo $row->Id, ' ',  $row->Name, '<br>';
+
+
+
+                //while ($row = mysqli_fetch_assoc($item)) {
+                    echo '<div>';
+                    echo '<input style="float:left; top-margin:40px " type="submit" name="Delete" value="Delete"/>';
+                    if ($item['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+                    echo '<input style="float:left;" class="checkbox" type="checkbox" name="Done"' . $checkedtekstas . '>';
+                    echo '<label style="display:inline-block;float: right; margin:0; padding:0px; text-align: right;" class="joblist">';
+                    echo $item['Name'];
+                    echo '</div>';
+
+
+                }
+            }
+            $results->free();
+        }
+    }
+
+
+
+
+
+
+        if (isset($_POST['Delete'])) {
+            if (isset($_POST['Done'])) {
+                $elements = $_POST['Done'];
+                $list = implode(',', $elements);
+                $delete = "DELETE FROM mytable WHERE id IN ($list)";
+
+                mysqli_query($conn, $delete) or die(mysqli_error($conn));
+            }
+
+        }
+
+       // foreach ($results as $item):
+            echo '<div style="float:left;">';
+
+            while ($row = mysqli_fetch_assoc($item)) {
+                echo '<div>';
+                echo '<input style="float:left; top-margin:40px " type="submit" name="Delete" value="Delete"/>';
+                if ($item['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+                echo '<input style="float:left;" class="checkbox" type="checkbox" name="Done"' . $checkedtekstas . '>';
+                echo '<label style="display:inline-block;float: right; margin:0; padding:0px; text-align: right;" class="joblist">';
+                echo $item['Name'];
+                echo '</div>';
+
+
+            }
+            // }
+
+        endforeach;
+        echo '</form>';
+        echo '</div>';
+
+
+        /*
+
+        echo '<input class="delete" name="Delete" type="submit" value="Delete">';
+        if ($item['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+        echo '<input class="checkbox" type="checkbox" name="Done"' . $checkedtekstas . '/><br>';
+
+        echo '<label class="joblist">';
+
+        echo $item['Name'];
+        */
+
+
+
+}
+
+?>
+
+///////////////////////////////////////////
+
+while($row=$results->fetch_assoc()) {
+
+                echo '<body style="float:left;">';
+                echo '<div style="float:left;">';
+
+                echo '<input style="float:left; top-margin:40px " type="submit" name="Delete" value="Delete"/>';
+                //echo '</div>';
+               // echo '<div style="float:left;">';
+                if ($row['Done']==1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+                echo '<input style="float:left;" class="checkbox" type="checkbox" name="Done[]" value="\'.$row[\'Id\'].\'">'."\n";
+                echo '<input type="hidden" name="id[]" value="'.$row['Id'].'">'."\n";
+                //echo '<div style="float:left;">';
+                echo '<label style="display:inline-block;float: right; margin:0; padding:0px; text-align: right;" class="joblist">';
+                echo $row['Name'],"<br/>"."\n";
+               // echo '</div>';
+                //echo $row->Name, $row->Done, '<br>';
+               // echo $row->Id, ' ',  $row->Name, $row->Done, '<br>';
+                echo '</div>';
+                echo '</body>';
+                echo '</form>';
+
+////////////////////
+
+visas
+////////////////
+
+<style>
+    .add {
+        float: right;
+    }
+
+    .joblist {
+        float: right;
+
+    }
+
+    .inputas {
+        float: left;
+        width: 50px;
+    }
+
+    .checkbox {
+        margin: 15px;
+    }
+
+    .delete {
+        float: left;
+    }
+
+
+</style>
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Dev minion
+ * Date: 5/9/2017
+ * Time: 7:10 PM
+ */
+// Creating the widget
+
+//-----------------------------------------------------
+
+
+/*
+$sql = "INSERT INTO MyGuests (firstname, lastname, email)
+VALUES ('John', 'Doe', 'john@example.com')";
+
+if ($conn->query($sql) === TRUE) {
+    echo "New record created successfully";
+} else {
+    echo "Error: " . $sql . "<br>" . $conn->error;
+}
+
+$conn->close();
+*/
+
+//-----------------------------------------------------------
+
+class vaidas_todo_widget extends WP_Widget
+{
+
+    function __construct()
+    {
+        parent::__construct(
+            'vaidas_todo',
+            __('To-do-listas', 'wpb_widget_domain'),
+            array('description' => __('Mano darbu listai', 'wpb_widget_domain'),)
+        );
+    }
+
+
+    public function widget($args, $instance)
+    {
+        $title = apply_filters('widget_title', $instance['title']);
+
+        // if (!empty($title))
+///
+        global $wpdb;
+        $results = $wpdb->get_results('SELECT * FROM `mytable`', ARRAY_A);
+
+
+        ?>
+
+
+        <div class="mainWidget">
+            <div id="widget">
+                <h1><?php echo $title ?></h1>
+                <form method="post" id="todoInsert" action="http://localhost/wordpress/">
+                    <label>Add new item <input type="text" name="inputwindow"></label>
+                    <input name="submit" class="add" type="submit" value="Add"/><br>
+                    <?php
+
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = '';
+                    $dbname = "wordpress";
+
+                    // Create connection
+                    $conn = mysqli_connect('localhost', 'root', '', 'wordpress');
+                    // Check connection
+                    if ($conn->connect_error) {
+                        die("Connection failed: " . $conn->connect_error);
+                    }
+
+                    if (isset($_POST['submit'])) {
+                        $name = $_POST['inputwindow'];
+
+
+                        //$sql=$wpdb->insert( mytable, $name, null );
+                        //$sql="insert into mytable(id, Name, Done) values ('5','$name', NULL)";
+                        $sql = "INSERT INTO mytable (Name) VALUES ('$name')";
+                        // $sql="INSERT INTO `mytable` (`Id`, `Name`, `Done`) VALUES (NULL, 'Jonas', NULL);";
+
+                        $query = mysqli_query($conn, $sql);
+                        if ($query)
+                            echo "'data inserted SUCCESSFULLY' ";
+
+
+                    } else {
+                        echo "ErrorRRRRRRRRRRRRRRRRRRRRRRRR:  ";
+                    }
+
+                    $conn->close();
+
+                    ?>
+            </div>
+
+
+            <?php
+
+            foreach ($results as $item):
+
+                ?>
+                <div>
+                    <input class="checkbox" type="checkbox"
+                           name="done" <?php if ($item['Done'] == 1) echo 'checked'; ?>/>
+                    <label class="joblist">
+                        <?php
+                        echo $item['Name'];
+                        ?>
+                    </label>
+                </div>
+
+            <?php endforeach; ?>
+
+
+            </form>
+        </div>
+        </div>
+
+
+        <?php
+
+
+        //echo __('Hello, World!', 'wpb_widget_domain');
+    }
+
+// Widget Backend
+    public
+    function form($instance)
+    {
+        if (isset($instance['title'])) {
+            $title = $instance['title'];
+        } else {
+            $title = __('New title', 'wpb_widget_domain');
+        }
+// Widget admin form
+        ?>
+        <p>
+            <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label>
+            <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>"
+                   name="<?php echo $this->get_field_name('title'); ?>" type="text"
+                   value="<?php echo esc_attr($title); ?>"/>
+        </p>
+        <?php
+    }
+
+// Updating widget replacing old instances with new
+    public
+    function update($new_instance, $old_instance)
+    {
+        $instance = array();
+        $instance['title'] = (!empty($new_instance['title'])) ? strip_tags($new_instance['title']) : '';
+        return $instance;
+    }
+} // Class wpb_widget ends here
+
+// Register and load the widget
+function vaidas_todo_load_widget()
+{
+    register_widget('vaidas_todo_widget');
+}
+
+add_action('widgets_init', 'vaidas_todo_load_widget');
+
+/** Step 2 (from text above). */
+add_action('admin_menu', 'my_plugin_menu');
+
+/** Step 1. */
+function my_plugin_menu()
+{
+    add_options_page('My Plugin Options', 'My Plugin', 'manage_options', 'my-unique-identifier', 'my_plugin_options');
+}
+
+
+/** Step 3. */
+function my_plugin_options()
+{
+    if (!current_user_can('manage_options')) {
+        wp_die(__('You do not have sufficient permissions to access this page.'));
+    }
+
+
+    $servername = "localhost";
+    $username = "root";
+    $password = '';
+    $dbname = "wordpress";
+
+    // Create connection
+    $conn = mysqli_connect('localhost', 'root', '');
+    $db = mysqli_select_db($conn, 'wordpress');
+    // Check connection
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
+
+        if (isset($_POST)) {
+            echo '<pre>';
+            print_r($_POST);
+            echo '<pre>';
+        }
+
+
+    echo '<form method="POST" action="">';
+
+    echo '<p>Here is where the form would go if I actually had options.</p>';
+    echo '<h1><a>to-do admin panel</a></h1>';
+
+//PANEL TITLE
+    if (isset($_POST['todopaneltitle'])) {
+        $title = $_POST['todopaneltitle'];
+        echo $_POST['todopaneltitle'];
+    }
+
+
+    echo '<input class="input" type="text" name="todopaneltitle"  value="To-do panel title"/><br>';
+    echo '<input class="save" type="submit" value="Save"><br/>';
+// end of TITLE
+
+
+    //global $wpdb;
+    $sql = "SELECT * FROM mytable";
+
+    //error_reporting(0);
+   // require 'C:/wamp64/www/wordpress/wp-content/plugins/Mano darbai/widget.php';
+    if ($results = mysqli_query($conn, $sql) or die(mysqli_error($conn))) {
+        if ($count=$results-> num_rows) {
+           // echo '<p>', $count, '</p>' ;
+            if (isset($_POST['Delete'])) {
+              // print_r($_POST['Delete']);
+                if (isset($_POST['Done'])) {
+                    //print_r($_POST['Done']);
+                    $elements=$_POST['Done'];
+
+
+                    $list=implode (',', $elements);
+                    print_r ($list);
+
+                    $delete="DELETE FROM extable WHERE id IN ($list)";
+                    mysqli_query($conn, $delete) or die(mysqli_error($conn));
+                }
+            }
+
+
+
+            while ($row = mysqli_fetch_assoc($results)) {
+
+
+                echo '<body style="float:left;">';
+                echo '<div style="float:left;">';
+
+
+
+                //DELETE MYGTUKAS
+                echo '<input type="submit" name="Delete" value="Delete"/>';
+
+
+                //echo '</div>';
+               // echo '<div style="float:left;">';
+
+
+                if ($row['Done']==1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+                echo '<input type="checkbox" name="Done[]" '.$checkedtekstas.' value="'.$row['Id'].'">'."\n";
+                //echo $checkedtekstas;
+                echo '<input type="hidden" name="id[]" value="'.$row['Id'].'">'."\n";
+                //echo '<div style="float:left;">';
+                //echo '<label style="display:inline-block;float: right; margin:0; padding:0px; text-align: right;" class="joblist">';
+                echo '<label="name['.$row['Name'].']" type="name" value="'.$row['Name'].'"><br/>'."\n";
+               // echo '</div>';
+                //echo $row->Name, $row->Done, '<br>';
+               // echo $row->Id, ' ',  $row->Name, $row->Done, '<br>';
+
+                echo $row['Name'];
+                echo '</div>';
+                echo '</body>';
+                echo '</form>';
+
+               /* if (isset($_POST['Delete'])) {
+                    if (isset($_POST['Done'])) {
+                        $elements = $_POST['Done'];
+                        print_r($_POST['Done']);
+                        $array=array($elements);
+                       // print_r($array);
+                        $list = implode(',', $array);
+                       print_r($list);
+                        $delete = "DELETE FROM mytable WHERE id IN ('$list')";
+
+                        mysqli_query($conn, $delete) or die(mysqli_error($conn));
+                    }
+
+                }
+*/
+
+                //while ($row = mysqli_fetch_assoc($item)) {
+                   // echo '<div>';
+                    //echo '<input style="float:left; top-margin:40px " type="submit" name="Delete" value="Delete"/>';
+                   // if ($item['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+                   // echo '<input style="float:left;" class="checkbox" type="checkbox" name="Done"' . $checkedtekstas . '>';
+                   // echo '<label style="display:inline-block;float: right; margin:0; padding:0px; text-align: right;" class="joblist">';
+                   // echo $item['Name'];
+                   // echo '</div>';
+
+
+                }
+            }
+            $results->free();
+        }
+
+
+
+/*
+
+
+
+        if (isset($_POST['Delete'])) {
+            if (isset($_POST['Done'])) {
+                $elements = $_POST['Done'];
+                $list = implode(',', $elements);
+                $delete = "DELETE FROM mytable WHERE id IN ($list)";
+
+                mysqli_query($conn, $delete) or die(mysqli_error($conn));
+            }
+
+        }
+
+       // foreach ($results as $item):
+            echo '<div style="float:left;">';
+
+            while ($row = mysqli_fetch_assoc($item)) {
+                echo '<div>';
+                echo '<input style="float:left; top-margin:40px " type="submit" name="Delete" value="Delete"/>';
+                if ($item['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+                echo '<input style="float:left;" class="checkbox" type="checkbox" name="Done"' . $checkedtekstas . '>';
+                echo '<label style="display:inline-block;float: right; margin:0; padding:0px; text-align: right;" class="joblist">';
+                echo $item['Name'];
+                echo '</div>';
+
+
+            }
+            // }
+
+        endforeach;
+        echo '</form>';
+        echo '</div>';
+
+
+        /*
+
+        echo '<input class="delete" name="Delete" type="submit" value="Delete">';
+        if ($item['Done'] == 1) $checkedtekstas = 'checked="checked"'; else $checkedtekstas = '';
+        echo '<input class="checkbox" type="checkbox" name="Done"' . $checkedtekstas . '/><br>';
+
+        echo '<label class="joblist">';
+
+        echo $item['Name'];
+        */
+
+
+
+}
+
+?>
+
+
+
+
+
+
+
